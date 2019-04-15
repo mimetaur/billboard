@@ -136,7 +136,7 @@ function Billboard:draw()
         end
 
         -- return the font face and font size to default
-        screen.font_size(6)
+        screen.font_size(8)
         screen.font_face(1)
     end
 end
