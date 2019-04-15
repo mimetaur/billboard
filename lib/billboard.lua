@@ -134,6 +134,10 @@ function Billboard:draw()
         if self.curfg_ > 0 then
             self.curfg_ = self.curfg_ - 1
         end
+
+        -- return the font face and font size to default
+        screen.font_size(6)
+        screen.font_face(1)
     end
 end
 
