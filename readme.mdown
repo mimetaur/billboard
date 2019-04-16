@@ -1,0 +1,45 @@
+## Billboard
+
+A UI Popup library for the Monome Norns.
+
+### Requirements
+
+Norns OS v.2.0.0 or greater.
+
+### Usage
+
+```lua
+-- Include billboard class
+local Billboard = include("billboard/lib/billboard")
+
+-- either use Billboard with defaults
+local billboard = new Billboard()
+
+-- or set layout and font directly
+local customBillboard = new Billboard(fadeout_time, x, y, w, h, text_x, text_y, bg, fg, font, bold_font, font_size, align, line_height);
+
+-- display a message in the billboard
+billboard:display("my message")
+
+-- or display an array of messages in the billboard
+local my_messages = {"hello", "world"}
+billboard:display(my_messages)
+
+-- displaying Norns params is a common use case
+-- so this shortcut bolds the value line
+billboard:display_param("cutoff", 350)
+
+-- then in your redraw function
+function redraw()
+    screen.clear()
+
+    -- your UI
+    screen.text("My Norns script.")
+
+    -- at the end so it floats on top
+    billboard:draw()
+
+    screen.update()
+end
+
+```
