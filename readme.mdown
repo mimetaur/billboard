@@ -2,7 +2,7 @@
 
 A UI Popup library for the Monome Norns.
 
-![Billboard Example](https://github.com/nathankoch/billboard/blob/master/example.png)
+![Billboard Example](example.png)
 
 ### Requirements
 
