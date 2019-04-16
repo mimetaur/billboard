@@ -2,6 +2,8 @@
 
 A UI Popup library for the Monome Norns.
 
+![Billboard Example](https://github.com/nathankoch/billboard/blob/master/example.png)
+
 ### Requirements
 
 Norns OS v.2.0 or greater.
