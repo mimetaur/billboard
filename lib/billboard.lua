@@ -28,12 +28,12 @@ end
 
 local function set_new_options(self, options)
     -- margins
-    self.x_margin_ = options.x_margin or 8
-    self.y_margin_ = options.y_margin or 12
+    self.x_margin_ = options.x_margin or 7
+    self.y_margin_ = options.y_margin or 7
 
     -- or instead set direct x, y, w, h values
-    self.x_ = options.x or 1 + self.x_margin_
-    self.y_ = options.y or 1 + self.y_margin_
+    self.x_ = options.x or self.x_margin_
+    self.y_ = options.y or self.y_margin_
     self.w_ = options.w or (127 - self.x_margin_)
     self.h_ = options.h or (63 - self.y_margin_)
 
