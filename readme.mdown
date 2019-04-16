@@ -4,7 +4,7 @@ A UI Popup library for the Monome Norns.
 
 ### Requirements
 
-Norns OS v.2.0.0 or greater.
+Norns OS v.2.0 or greater.
 
 ### Usage
 
@@ -12,11 +12,31 @@ Norns OS v.2.0.0 or greater.
 -- Include billboard class
 local Billboard = include("billboard/lib/billboard")
 
--- either use Billboard with defaults
+-- billboard with defaults
 local billboard = new Billboard()
 
--- or set layout and font directly
-local customBillboard = new Billboard(fadeout_time, x, y, w, h, text_x, text_y, bg, fg, font, bold_font, font_size, align, line_height);
+-- or with options
+local options = {}
+options.x_margin = 8
+options.y_margin 12
+options.x = 1
+options.y = 1
+options.w = 127
+options.h = 63
+options.text_x = 64 -- offset text within billboard
+options.text_y = 32
+options.fadeout_time = 0.6 -- fadeout time in seconds
+options.bg_level = 0
+options.fg_level = 14
+options.font = 28
+options.bold_font = 27
+options.font_size = 10
+options.line_height = 1.6
+
+local customBillboard = new Billboard(options);
+
+-- or change options later
+billboard:set_options(options)
 
 -- display one message (on one line) in the billboard
 billboard:display("my message")
@@ -40,5 +60,4 @@ function redraw()
 
     screen.update()
 end
-
 ```
