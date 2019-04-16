@@ -2,6 +2,7 @@
 
 local Billboard = {}
 Billboard.__index = Billboard
+
 -- TODO either register more fonts here
 -- or create a pull request so we can work with norns fonts
 -- without magic numbers
@@ -23,30 +24,55 @@ local function check_bold(self, line_num)
     end
 end
 
-function Billboard.new(fadeout_time, x, y, w, h, text_x, text_y, bg, fg, font, bold_font, font_size, align, line_height)
-    local b = {}
-    local x_margin = 8
-    local y_margin = 12
-    b.x_ = x or 1 + x_margin
-    b.y_ = y or 1 + x_margin
-    b.w_ = w or (127 - y_margin)
-    b.h_ = h or (63 - y_margin)
-    b.text_x_ = text_x or math.ceil(b.x_ + (b.w_ / 2))
-    b.text_y_ = text_y or math.ceil(b.y_ + (b.h_ / 2))
-    b.message_ = ""
-    b.do_display_ = false
-    b.display_length_ = fadeout_time or 0.6
-    b.bg_ = bg or 0
-    b.fg_ = fg or 14
-    b.curfg_ = b.fg_
-    b.active_ = false
-    b.font_ = font or Billboard.FONTS.CTRL_D_10_REGULAR
-    b.bold_font_ = bold_font or Billboard.FONTS.CTRL_D_10_BOLD
-    b.font_size_ = font_size or 10
-    b.align_ = align or "center"
-    b.line_height_ = line_height or 1.6
-    b.bold_lines_ = {}
+local function set_new_options(self, options)
+    -- margins
+    self.x_margin_ = options.x_margin or 8
+    self.y_margin_ = options.y_margin or 12
 
+    -- or instead set direct x, y, w, h values
+    self.x_ = options.x or 1 + self.x_margin_
+    self.y_ = options.y or 1 + self.y_margin_
+    self.w_ = options.w or (127 - self.x_margin_)
+    self.h_ = options.h or (63 - self.y_margin_)
+
+    -- for placing text within the billboard frame
+    self.text_x_ = options.text_x or math.ceil(self.x_ + (self.w_ / 2))
+    self.text_y_ = options.text_y or math.ceil(self.y_ + (self.h_ / 2))
+
+    -- how long the billboard fades for
+    self.display_length_ = options.fadeout_time or 0.6
+
+    -- foreground and background levels (0 to 15)
+    self.bg_ = options.bg_level or 0
+    self.fg_ = options.fg_level or 14
+
+    -- font settings
+    self.font_ = options.font or Billboard.FONTS.CTRL_D_10_REGULAR
+    self.bold_font_ = options.bold_font or Billboard.FONTS.CTRL_D_10_BOLD
+    self.font_size_ = options.font_size or 10
+
+    -- layout settings
+    self.line_height_ = options.line_height or 1.6
+
+    -- valid settings: "center" or "left"
+    self.align_ = options.align or "center"
+end
+
+function Billboard.new(options)
+    local b = {}
+
+    -- merge options into b table
+    local options = options or {}
+    set_new_options(b, options)
+
+    -- add internal state
+    b.active_ = false
+    b.do_display_ = false
+    b.message_ = ""
+    b.bold_lines_ = {}
+    b.curfg_ = b.fg_
+
+    -- on display handles how long message is displayed
     local function display_callback()
         b.do_display_ = false
         b.message_ = ""
@@ -54,6 +80,9 @@ function Billboard.new(fadeout_time, x, y, w, h, text_x, text_y, bg, fg, font, b
     end
     b.on_display_ = metro.init(display_callback, b.display_length_, 1)
 
+    -- this is a built in 1 sec delay callback to give
+    -- the internal params on the norms a chance to
+    -- settle down instead of showing billboards instantly
     local function start_callback()
         b.active_ = true
     end
@@ -64,16 +93,8 @@ function Billboard.new(fadeout_time, x, y, w, h, text_x, text_y, bg, fg, font, b
     return b
 end
 
-function Billboard:set_font(font_num)
-    self.font_ = font_num
-end
-
-function Billboard:set_bold_font(bold_font_num)
-    self.bold_font_ = bold_font_num
-end
-
-function Billboard:set_font_size(font_size)
-    self.font_size_ = font_size
+function Billboard:set_options(options)
+    set_new_options(self, options)
 end
 
 function Billboard:bold_line(line_num)
@@ -101,7 +122,7 @@ function Billboard:display(...)
     self.message_ = new_msg
     self.curfg_ = self.fg_
     self.do_display_ = true
-    self.on_display_:start()
+    self.on_display_:start(self.display_length_)
 end
 
 function Billboard:draw()
