@@ -8,6 +8,8 @@ Billboard.__index = Billboard
 -- without magic numbers
 Billboard.FONTS = {CTRL_D_10_REGULAR = 28, CTRL_D_10_BOLD = 27}
 
+local ALIGN_TYPES = {"center", "left"}
+
 local function calculate_line_height(self)
     return math.ceil(self.font_size_ * self.line_height_)
 end
@@ -54,8 +56,12 @@ local function set_new_options(self, options)
     -- layout settings
     self.line_height_ = options.line_height or 1.6
 
-    -- valid settings: "center" or "left"
-    self.align_ = options.align or "center"
+    local default_alignment = "center"
+    local alignment = options.align or default_alignment
+    if not tab.contains(ALIGN_TYPES, alignment) then
+        alignment = default_alignment
+    end
+    self.align_ = alignment
 end
 
 function Billboard.new(options)
@@ -145,13 +151,14 @@ function Billboard:draw()
 
         for i, msg in ipairs(self.message_) do
             check_bold(self, i)
-            screen.text_center(msg)
+
+            if self.align_ == "center" then
+                screen.text_center(msg)
+            else
+                screen.text(msg)
+            end
+
             screen.move(self.text_x_, self.text_y_ + calculate_line_height_multiple(self, i))
-            -- TODO fix this to allow for aligning
-            -- if self.align_ == "center" then
-            -- else
-            --     screen.text(msg)
-            -- end
         end
 
         -- fade out
