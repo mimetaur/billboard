@@ -80,26 +80,28 @@ function Billboard:bold_line(line_num)
     table.insert(self.bold_lines_, line_num)
 end
 
-function Billboard:display_param(param_name, param_value, do_bold_value)
-    local bold = do_bold_value or true
-    self:display({param_name, param_value})
-    if bold then
+function Billboard:display_param(param_name, param_value, bold_value)
+    local b = bold_value or true
+    self:display(param_name, param_value)
+    if b then
         self:bold_line(2)
     end
 end
 
-function Billboard:display(new_message)
-    if self.active_ then
-        if type(new_message) == "string" then
-            local txt = new_message
-            new_message = {}
-            table.insert(new_message, txt)
-        end
-        self.message_ = new_message
-        self.curfg_ = self.fg_
-        self.do_display_ = true
-        self.on_display_:start()
+function Billboard:display(...)
+    if not self.active_ then
+        return
     end
+
+    local new_msg = {}
+    for _, msg in ipairs({...}) do
+        table.insert(new_msg, msg)
+    end
+
+    self.message_ = new_msg
+    self.curfg_ = self.fg_
+    self.do_display_ = true
+    self.on_display_:start()
 end
 
 function Billboard:draw()
@@ -124,6 +126,7 @@ function Billboard:draw()
             check_bold(self, i)
             screen.text_center(msg)
             screen.move(self.text_x_, self.text_y_ + calculate_line_height_multiple(self, i))
+            -- TODO fix this to allow for aligning
             -- if self.align_ == "center" then
             -- else
             --     screen.text(msg)

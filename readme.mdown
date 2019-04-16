@@ -18,15 +18,14 @@ local billboard = new Billboard()
 -- or set layout and font directly
 local customBillboard = new Billboard(fadeout_time, x, y, w, h, text_x, text_y, bg, fg, font, bold_font, font_size, align, line_height);
 
--- display a message in the billboard
+-- display one message (on one line) in the billboard
 billboard:display("my message")
 
--- or display an array of messages in the billboard
-local my_messages = {"hello", "world"}
-billboard:display(my_messages)
+-- or multiple messages (each on a new line)
+billboard:display("hello", "world")
 
--- displaying Norns params is a common use case
--- so this shortcut bolds the value line
+-- displaying Norns params is common enough
+-- that there's this shortcut (bolds the value line)
 billboard:display_param("cutoff", 350)
 
 -- then in your redraw function
