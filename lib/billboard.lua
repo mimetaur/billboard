@@ -1,5 +1,9 @@
 --- Billboard class.
 
+-- TODO
+-- could this whole thing be simplified and
+-- baked into the Norns UI library as a Popup UI class?
+
 local Billboard = {}
 Billboard.__index = Billboard
 
@@ -131,6 +135,10 @@ function Billboard:display(...)
     self.on_display_:start(self.display_length_)
 end
 
+-- TODO
+-- right now this function depends on a screen drawing clock
+-- running elsewhere, which puts burden on the user to implement
+-- if they don't need one elsewhere.
 function Billboard:draw()
     if self.message_ and self.active_ and self.do_display_ then
         -- draw bg
