@@ -23,7 +23,7 @@ local function check_bold(self, line_num)
     end
 end
 
-function Billboard.new(x, y, w, h, text_x, text_y, len, bg, fg, font, bold_font, font_size, align, line_height)
+function Billboard.new(fadeout_time, x, y, w, h, text_x, text_y, bg, fg, font, bold_font, font_size, align, line_height)
     local b = {}
     local x_margin = 8
     local y_margin = 12
@@ -35,7 +35,7 @@ function Billboard.new(x, y, w, h, text_x, text_y, len, bg, fg, font, bold_font,
     b.text_y_ = text_y or math.ceil(b.y_ + (b.h_ / 2))
     b.message_ = ""
     b.do_display_ = false
-    b.display_length_ = len or 0.6
+    b.display_length_ = fadeout_time or 0.6
     b.bg_ = bg or 0
     b.fg_ = fg or 14
     b.curfg_ = b.fg_
