@@ -38,8 +38,8 @@ local function set_new_options(self, options)
     -- or instead set direct x, y, w, h values
     self.x_ = options.x or self.x_margin_
     self.y_ = options.y or self.y_margin_
-    self.w_ = options.w or (127 - self.x_margin_)
-    self.h_ = options.h or (63 - self.y_margin_)
+    self.w_ = options.w or (127 - (self.x_margin_ + 4))
+    self.h_ = options.h or (63 - (self.y_margin_ + 4))
 
     -- for placing text within the billboard frame
     self.text_x_ = options.text_x or math.ceil(self.x_ + (self.w_ / 2))
