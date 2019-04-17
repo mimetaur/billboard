@@ -13,14 +13,13 @@ Billboard.__index = Billboard
 Billboard.FONTS = {CTRL_D_10_REGULAR = 28, CTRL_D_10_BOLD = 27}
 
 local ALIGN_TYPES = {"center", "left"}
-local FADEOUT_STEPS = 7
 
 local function calculate_line_height(self)
-    return util.round(self.font_size_ * self.line_height_, 1.0)
+    return math.ceil(self.font_size_ * self.line_height_)
 end
 
 local function calculate_line_height_multiple(self, i)
-    return util.round(calculate_line_height(self) * i, 1.0)
+    return math.ceil(calculate_line_height(self) * i)
 end
 
 local function check_bold(self, line_num)
@@ -31,10 +30,6 @@ local function check_bold(self, line_num)
     end
 end
 
-local function fadeout_rate(self)
-    return (self.fadeout_time_ / FADEOUT_STEPS)
-end
-
 local function set_new_options(self, options)
     -- margins
     self.x_margin_ = options.x_margin or 7
@@ -43,15 +38,15 @@ local function set_new_options(self, options)
     -- or instead set direct x, y, w, h values
     self.x_ = options.x or self.x_margin_
     self.y_ = options.y or self.y_margin_
-    self.w_ = options.w or util.round(127 - self.x_margin_)
-    self.h_ = options.h or util.round(63 - self.y_margin_)
+    self.w_ = options.w or (127 - self.x_margin_)
+    self.h_ = options.h or (63 - self.y_margin_)
 
     -- for placing text within the billboard frame
-    self.text_x_ = options.text_x or util.round(self.x_ + (self.w_ / 2))
-    self.text_y_ = options.text_y or util.round(self.y_ + (self.h_ / 2))
+    self.text_x_ = options.text_x or math.ceil(self.x_ + (self.w_ / 2))
+    self.text_y_ = options.text_y or math.ceil(self.y_ + (self.h_ / 2))
 
-    -- how long the billboard is on screen for
-    self.fadeout_time_ = options.fadeout_time or 0.75
+    -- how long the billboard fades for
+    self.display_length_ = options.fadeout_time or 0.6
 
     -- foreground and background levels (0 to 15)
     self.bg_ = options.bg_level or 0
@@ -80,34 +75,20 @@ function Billboard.new(options)
     local options = options or {}
     set_new_options(b, options)
 
-    -- internal state
+    -- add internal state
     b.active_ = false
     b.do_display_ = false
     b.message_ = ""
     b.bold_lines_ = {}
     b.curfg_ = b.fg_
-    b.fade_steps_ = 0
 
-    -- once hold completes billboard fades out
-    local function fadeout_callback()
-        b.fade_steps_ = b.fade_steps_ + 1
-        if b.fade_steps_ == FADEOUT_STEPS then
-            -- stop the fadeout
-            -- and reset message state
-            b.do_display_ = false
-            b.message_ = ""
-            b.curfg_ = b.fg_
-            b.fade_steps_ = 0
-        else
-            -- if the foreground isn't fully faded out
-            if b.curfg_ > b.bg_ then
-                -- then keep fading out
-                local dec = b.fg_ / FADEOUT_STEPS
-                b.curfg_ = util.round(b.curfg_ - dec, 1.0)
-            end
-        end
+    -- on display handles how long message is displayed
+    local function display_callback()
+        b.do_display_ = false
+        b.message_ = ""
+        b.curfg_ = b.fg_
     end
-    b.on_fade_ = metro.init(fadeout_callback, fadeout_rate(b), FADEOUT_STEPS)
+    b.on_display_ = metro.init(display_callback, b.display_length_, 1)
 
     -- this is a built in 1 sec delay callback to give
     -- the internal params on the norms a chance to
@@ -151,9 +132,13 @@ function Billboard:display(...)
     self.message_ = new_msg
     self.curfg_ = self.fg_
     self.do_display_ = true
-    self.on_fade_:start(fadeout_rate(self))
+    self.on_display_:start(self.display_length_)
 end
 
+-- TODO
+-- right now this function depends on a screen drawing clock
+-- running elsewhere, which puts burden on the user to implement
+-- if they don't need one elsewhere.
 function Billboard:draw()
     if self.message_ and self.active_ and self.do_display_ then
         -- draw bg
@@ -169,6 +154,7 @@ function Billboard:draw()
         -- draw message
         screen.level(self.curfg_)
         screen.move(self.text_x_, self.text_y_)
+
         screen.font_size(self.font_size_)
 
         for i, msg in ipairs(self.message_) do
@@ -181,6 +167,11 @@ function Billboard:draw()
             end
 
             screen.move(self.text_x_, self.text_y_ + calculate_line_height_multiple(self, i))
+        end
+
+        -- fade out
+        if self.curfg_ > 0 then
+            self.curfg_ = self.curfg_ - 1
         end
 
         -- return the font face and font size to default
