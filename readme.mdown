@@ -50,6 +50,9 @@ billboard:display("hello", "world")
 -- that there's this shortcut (bolds the value line)
 billboard:display_param("cutoff", 350)
 
+-- example norns setup, refreshing at 15 fps
+local clock = metro.init(redraw, 1/15, -1)
+
 -- then in your redraw function
 function redraw()
     screen.clear()
