@@ -11,8 +11,9 @@ Billboard.__index = Billboard
 -- or create a pull request so we can work with norns fonts
 -- without magic numbers
 Billboard.FONTS = {CTRL_D_10_REGULAR = 28, CTRL_D_10_BOLD = 27}
-
-local ALIGN_TYPES = {"center", "left"}
+Billboard.FONTS["04B03_REGULAR"] = 1
+Billboard.MODES = {"banner", "fullscreen"}
+Billboard.MODES_REV = {banner = 1, fullscreen = 2}
 
 local function calculate_line_height(self)
     return math.ceil(self.font_size_ * self.line_height_)
@@ -31,41 +32,71 @@ local function check_bold(self, line_num)
 end
 
 local function set_new_options(self, options)
-    -- margins
-    self.x_margin_ = options.x_margin or 7
-    self.y_margin_ = options.y_margin or 7
+    self.mode_ = options.mode or "fullscreen"
+    self.display_param_ = options.add_param or true
 
-    -- or instead set direct x, y, w, h values
-    self.x_ = options.x or self.x_margin_
-    self.y_ = options.y or self.y_margin_
-    self.w_ = options.w or (127 - (self.x_margin_ + 4))
-    self.h_ = options.h or (63 - (self.y_margin_ + 4))
+    if self.mode_ == "fullscreen" then
+        -- margins
+        local x_margin = 7
+        local y_margin = 7
 
-    -- for placing text within the billboard frame
-    self.text_x_ = options.text_x or math.ceil(self.x_ + (self.w_ / 2))
-    self.text_y_ = options.text_y or math.ceil(self.y_ + (self.h_ / 2))
+        -- or instead set direct x, y, w, h values
+        self.x_ = x_margin
+        self.y_ = y_margin
+        self.w_ = (127 - (x_margin + 4))
+        self.h_ = (63 - (y_margin + 4))
+
+        -- for placing text within the billboard frame
+        self.text_x_ = math.ceil(self.x_ + (self.w_ / 2))
+        self.text_y_ = math.ceil(self.y_ + (self.h_ / 2))
+
+        -- font settings
+        self.font_ = Billboard.FONTS.CTRL_D_10_REGULAR
+        self.bold_font_ = Billboard.FONTS.CTRL_D_10_BOLD
+        self.font_size_ = 10
+        self.line_height_ = 1.6
+    elseif self.mode_ == "banner" then
+        local x_margin = 8
+        local y_margin = 8
+
+        self.line_height_ = 1.6
+        self.x_ = math.ceil(x_margin / 2)
+        self.y_ = 64 - math.ceil(y_margin * self.line_height_)
+        self.w_ = math.ceil(127 - x_margin)
+        self.h_ = math.ceil(y_margin * self.line_height_)
+
+        -- for placing text within the billboard frame
+        self.text_x_ = math.ceil(self.x_ + (self.w_ / 2))
+        self.text_y_ = math.ceil(self.y_ + (self.h_ * 0.6))
+
+        -- font settings
+        self.font_ = Billboard.FONTS["04B03_REGULAR"]
+        self.bold_font_ = Billboard.FONTS["04B03_REGULAR"]
+        self.font_size_ = 8
+    end
 
     -- how long the billboard fades for
-    self.display_length_ = options.fadeout_time or 0.6
+    self.display_length_ = 0.6
 
     -- foreground and background levels (0 to 15)
-    self.bg_ = options.bg_level or 0
-    self.fg_ = options.fg_level or 14
+    self.bg_ = 0
+    self.fg_ = 14
+end
 
-    -- font settings
-    self.font_ = options.font or Billboard.FONTS.CTRL_D_10_REGULAR
-    self.bold_font_ = options.bold_font or Billboard.FONTS.CTRL_D_10_BOLD
-    self.font_size_ = options.font_size or 10
-
-    -- layout settings
-    self.line_height_ = options.line_height or 1.6
-
-    local default_alignment = "center"
-    local alignment = options.align or default_alignment
-    if not tab.contains(ALIGN_TYPES, alignment) then
-        alignment = default_alignment
-    end
-    self.align_ = alignment
+local function add_param(self)
+    local current_mode = Billboard.MODES_REV[self.mode_]
+    params:add {
+        type = "option",
+        id = "billboard_mode",
+        name = "billboard mode",
+        default = current_mode,
+        options = Billboard.MODES,
+        action = function(value)
+            local mode_name = Billboard.MODES[value]
+            billboard:set_options({mode = mode_name})
+        end
+    }
+    params:add_separator()
 end
 
 function Billboard.new(options)
@@ -96,8 +127,13 @@ function Billboard.new(options)
     local function start_callback()
         b.active_ = true
     end
+
     b.on_start_ = metro.init(start_callback, 1, 1)
     b.on_start_:start()
+
+    if b.display_param_ then
+        add_param(b)
+    end
 
     setmetatable(b, Billboard)
     return b
@@ -113,6 +149,9 @@ end
 
 function Billboard:display_param(param_name, param_value, bold_value)
     local b = bold_value or true
+    if self.mode_ == "banner" then
+        param_name = param_name .. ":"
+    end
     self:display(param_name, param_value)
     if b then
         self:bold_line(2)
@@ -157,16 +196,15 @@ function Billboard:draw()
 
         screen.font_size(self.font_size_)
 
-        for i, msg in ipairs(self.message_) do
-            check_bold(self, i)
-
-            if self.align_ == "center" then
+        if self.mode_ == "fullscreen" then
+            for i, msg in ipairs(self.message_) do
+                check_bold(self, i)
                 screen.text_center(msg)
-            else
-                screen.text(msg)
+                screen.move(self.text_x_, self.text_y_ + calculate_line_height_multiple(self, i))
             end
-
-            screen.move(self.text_x_, self.text_y_ + calculate_line_height_multiple(self, i))
+        elseif self.mode_ == "banner" then
+            local txt = table.concat(self.message_, " ")
+            screen.text_center(txt)
         end
 
         -- fade out

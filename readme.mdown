@@ -15,25 +15,12 @@ Norns OS v.2.0 or greater.
 local Billboard = include("billboard/lib/billboard")
 
 -- billboard with defaults
-local billboard = new Billboard()
+local billboard = new Billboard() -- same as mode "fullscreen"
 
 -- or with options
 local options = {}
-options.x_margin = 8
-options.y_margin 12
-options.x = 1
-options.y = 1
-options.w = 127
-options.h = 63
-options.text_x = 64 -- offset text within billboard
-options.text_y = 32
-options.fadeout_time = 0.6 -- fadeout time in seconds
-options.bg_level = 0
-options.fg_level = 14
-options.font = 28
-options.bold_font = 27
-options.font_size = 10
-options.line_height = 1.6
+options.mode = "banner" -- valid modes are "banner" and "fullscreen"
+options.add_param = false -- adds a param to change modes by default
 
 local customBillboard = new Billboard(options);
 
@@ -43,11 +30,11 @@ billboard:set_options(options)
 -- display one message (on one line) in the billboard
 billboard:display("my message")
 
--- or multiple messages (each on a new line)
+-- or multiple messages
 billboard:display("hello", "world")
 
 -- displaying Norns params is common enough
--- that there's this shortcut (bolds the value line)
+-- that there's this shortcut
 billboard:display_param("cutoff", 350)
 
 -- example norns setup, refreshing at 15 fps
