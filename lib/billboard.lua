@@ -93,7 +93,7 @@ local function add_param(self)
         options = Billboard.MODES,
         action = function(value)
             local mode_name = Billboard.MODES[value]
-            billboard:set_options({mode = mode_name})
+            self:set_options({mode = mode_name})
         end
     }
     params:add_separator()
