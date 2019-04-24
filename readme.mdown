@@ -20,7 +20,8 @@ local billboard = new Billboard() -- same as mode "fullscreen"
 -- or with options
 local options = {}
 options.mode = "banner" -- valid modes are "banner" and "fullscreen"
-options.add_param = false -- adds a param to change modes by default
+options.mode_param = false -- adds a param to change modes, true by default
+options.hide_param = false -- adds a param to show/hide, true by default
 
 local customBillboard = new Billboard(options);
 

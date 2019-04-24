@@ -14,6 +14,7 @@ Billboard.FONTS = {CTRL_D_10_REGULAR = 28, CTRL_D_10_BOLD = 27}
 Billboard.FONTS["04B03_REGULAR"] = 1
 Billboard.MODES = {"banner", "fullscreen"}
 Billboard.MODES_REV = {banner = 1, fullscreen = 2}
+Billboard.SHOW = {"yes", "no"}
 
 local function calculate_line_height(self)
     return math.ceil(self.font_size_ * self.line_height_)
@@ -33,7 +34,8 @@ end
 
 local function set_new_options(self, options)
     self.mode_ = options.mode or "fullscreen"
-    self.display_param_ = options.add_param or true
+    self.display_param_ = options.mode_param or true
+    self.active_param_ = options.hide_param or true
 
     if self.mode_ == "fullscreen" then
         -- margins
@@ -83,20 +85,44 @@ local function set_new_options(self, options)
     self.fg_ = 14
 end
 
-local function add_param(self)
-    local current_mode = Billboard.MODES_REV[self.mode_]
-    params:add {
-        type = "option",
-        id = "billboard_mode",
-        name = "billboard mode",
-        default = current_mode,
-        options = Billboard.MODES,
-        action = function(value)
-            local mode_name = Billboard.MODES[value]
-            self:set_options({mode = mode_name})
-        end
-    }
-    params:add_separator()
+local function add_params(self)
+    local did_add_params = false
+    if self.display_param_ then
+        local current_mode = Billboard.MODES_REV[self.mode_]
+        params:add {
+            type = "option",
+            id = "billboard_mode",
+            name = "billboard mode",
+            default = current_mode,
+            options = Billboard.MODES,
+            action = function(value)
+                local mode_name = Billboard.MODES[value]
+                self:set_options({mode = mode_name})
+            end
+        }
+        did_add_params = true
+    end
+
+    if self.active_param_ then
+        params:add {
+            type = "option",
+            id = "billboard_show",
+            name = "show billboard",
+            default = current_mode,
+            options = Billboard.SHOW,
+            action = function(value)
+                if value == 2 then
+                    self:hide()
+                else
+                    self:show()
+                end
+            end
+        }
+        did_add_params = true
+    end
+    if did_add_params then
+        params:add_separator()
+    end
 end
 
 function Billboard.new(options)
@@ -131,12 +157,18 @@ function Billboard.new(options)
     b.on_start_ = metro.init(start_callback, 1, 1)
     b.on_start_:start()
 
-    if b.display_param_ then
-        add_param(b)
-    end
+    add_params(b)
 
     setmetatable(b, Billboard)
     return b
+end
+
+function Billboard:hide()
+    self.active_ = false
+end
+
+function Billboard:show()
+    self.active_ = true
 end
 
 function Billboard:set_options(options)
